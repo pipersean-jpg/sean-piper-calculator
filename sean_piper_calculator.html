@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sean Piper — Travel & Quote Calculator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--bg:#0e1219;--bg2:#141b24;--bg3:#1a2333;--card:#1c2535;--border:#2a3a50;--gold:#c8a84b;--gold2:#e8c96a;--text:#ddd0b8;--muted:#6a8090;--green:#5a9a5a;--radius:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+.topbar{background:linear-gradient(135deg,#0d1520,#162030);border-bottom:2px solid var(--gold);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:200;}
+.topbar-logo{display:flex;align-items:center;gap:12px;}
+.topbar-logo img{height:40px;border-radius:4px;}
+.topbar-title{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:1px;text-transform:uppercase;}
+.topbar-sub{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+.tabs{display:flex;}
+.tab{padding:8px 18px;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s;}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold);}
+.tab:hover:not(.on){color:var(--text);}
+.main{max-width:1180px;margin:0 auto;padding:24px 18px 60px;}
+.panel{display:none;}.panel.on{display:block;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;}
+.ctitle{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.ctitle::after{content:'';flex:1;height:1px;background:var(--border);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+@media(max-width:700px){.g2,.g3,.g5{grid-template-columns:1fr 1fr;}}
+@media(max-width:420px){.g2,.g3,.g5{grid-template-columns:1fr;}}
+label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;}
+input,select,textarea{width:100%;padding:9px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border-color .2s;}
+input:focus,select:focus{border-color:var(--gold);}
+select option{background:#1a2333;}
+.fgroup{display:flex;flex-direction:column;gap:4px;}
+.btn{padding:10px 20px;border-radius:8px;border:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0d1520;}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(200,168,75,.35);}
+.btn-outline{background:transparent;border:2px solid var(--border);color:var(--muted);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-danger{background:rgba(192,96,96,.18);border:1px solid rgba(192,96,96,.4);color:#e08080;}
+.btn-green{background:linear-gradient(135deg,#3a7a3a,#5a9a5a);color:#fff;}
+.btn-green:hover{transform:translateY(-1px);}
+.btn-sm{padding:6px 12px;font-size:11px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
+.tcards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;}
+.tcard{border:2px solid var(--border);border-radius:9px;padding:12px 6px;text-align:center;cursor:pointer;transition:all .2s;user-select:none;background:var(--bg3);}
+.tcard.on{border-color:var(--gold);background:rgba(200,168,75,.1);}
+.tcard .te{font-size:22px;margin-bottom:4px;}
+.tcard .tn{font-size:11px;font-weight:700;color:var(--muted);}
+.tcard.on .tn{color:var(--gold);}
+.tcard .tk{font-size:10px;color:var(--green);visibility:hidden;margin-top:2px;}
+.tcard.on .tk{visibility:visible;}
+.rtable{width:100%;border-collapse:collapse;font-size:13px;}
+.rtable th{padding:9px 11px;text-align:center;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);background:var(--bg3);}
+.rtable th.lc{text-align:left;}
+.rtable td{padding:8px 11px;border-bottom:1px solid rgba(42,58,80,.4);vertical-align:top;}
+.rtable td.lc{font-size:11.5px;color:#8899aa;}
+.rtable td.cc{text-align:center;font-weight:600;}
+.rtable td.nc{text-align:center;color:#1e2d3a;}
+.rtable .sr td{padding:10px 11px 3px;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#3a5570;border-top:1px solid var(--border);font-weight:700;}
+.rtable .tr td{padding:12px 11px;border-top:2px solid var(--gold);background:var(--bg3);}
+.nsm{font-size:9px;color:#445566;margin-top:2px;line-height:1.3;font-weight:400;}
+.prow{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;position:relative;}
+.sbox{padding:10px 14px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:8px;margin-top:10px;}
+.sbox.info{background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.3);color:var(--gold);}
+.sbox.ok{background:rgba(90,154,90,.1);border:1px solid rgba(90,154,90,.3);color:#7acc7a;}
+.sbox.err{background:rgba(192,96,96,.1);border:1px solid rgba(192,96,96,.3);color:#e08080;}
+.tip{font-size:10px;color:var(--muted);margin-top:3px;}
+.badge-ai{display:inline-block;font-size:9px;padding:1px 7px;border-radius:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-left:5px;background:rgba(200,168,75,.2);color:var(--gold);}
+.scroll{overflow-x:auto;}
+.divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
+.smbox{background:linear-gradient(135deg,rgba(200,168,75,.12),rgba(200,168,75,.05));border:1px solid rgba(200,168,75,.4);border-radius:var(--radius);padding:18px 22px;}
+.smtotal{font-size:30px;font-weight:800;color:var(--gold);line-height:1;}
+.smlabel{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.qmrow{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;}
+.qmrow:hover{border-color:var(--gold);}
+.qmrow input[type=radio]{accent-color:var(--gold);width:15px;height:15px;flex-shrink:0;}
+.qmlabel{flex:1;font-size:13px;}
+.qmcost{font-size:15px;font-weight:700;color:var(--gold);}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(200,168,75,.3);border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.sf{display:none;color:var(--green);font-size:11px;}
+.sf.show{display:inline;}
+/* Date picker */
+.dp-wrap{position:relative;}
+.dp-input{cursor:pointer;}
+.dp-popup{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;background:#1c2535;border:1px solid var(--gold);border-radius:10px;padding:14px;min-width:264px;box-shadow:0 8px 32px rgba(0,0,0,.6);}
+.dp-popup.open{display:block;}
+.dp-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.dp-nav{background:transparent;border:none;color:var(--gold);font-size:20px;cursor:pointer;padding:2px 8px;border-radius:5px;line-height:1;}
+.dp-nav:hover{background:rgba(200,168,75,.15);}
+.dp-my{font-size:13px;font-weight:700;color:var(--text);}
+.dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.dp-cell{text-align:center;padding:5px 2px;font-size:11px;border-radius:5px;color:var(--muted);}
+.dp-cell.hd{color:var(--gold);font-weight:700;font-size:10px;}
+.dp-cell.dy{cursor:pointer;}
+.dp-cell.dy:hover{background:rgba(200,168,75,.2);color:var(--text);}
+.dp-cell.td{border:1px solid rgba(200,168,75,.4);color:var(--text);}
+.dp-cell.sel{background:var(--gold);color:#0d1520;font-weight:700;}
+.dp-cell.om{opacity:.25;}
+/* Perf tabs in settings */
+.ptabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.ptab{padding:7px 18px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;margin-bottom:-1px;}
+.ptab.on{color:var(--gold);border-bottom-color:var(--gold);}
+/* Logo upload */
+.logo-area{border:2px dashed var(--border);border-radius:8px;padding:14px;text-align:center;cursor:pointer;}
+.logo-area:hover{border-color:var(--gold);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">
+    <img id="logoImg" alt="Sean Piper">
+    <div>
+      <div class="topbar-title">Travel &amp; Quote Calculator</div>
+      <div class="topbar-sub">Sean Piper — Magician &amp; Mentalist</div>
+    </div>
+  </div>
+  <div class="tabs" id="mainTabs">
+    <button class="tab on"  data-panel="calc">🧮 Calculator</button>
+    <button class="tab"     data-panel="quote">📄 Build Quote</button>
+    <button class="tab"     data-panel="settings">⚙️ Defaults</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- CALCULATOR -->
+<div id="panel-calc" class="panel on">
+  <div class="g2" style="margin-bottom:18px;">
+    <div class="card">
+      <div class="ctitle">Trip Details</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="fgroup"><label>Home Location</label><input type="text" id="homeLocation" value="Rochedale QLD"></div>
+        <div class="fgroup">
+          <label>Destination</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="destination" placeholder="e.g. Coffs Harbour NSW" style="flex:1;">
+            <button class="btn btn-gold btn-sm" id="btnLookup">🔍 Look Up</button>
+          </div>
+          <div class="tip">Enter destination then click Look Up to auto-fill distance, accommodation &amp; fuel</div>
+        </div>
+        <div id="lookupStatus" style="display:none;"></div>
+        <div class="g2">
+          <div class="fgroup">
+            <label>Distance km one way <span id="distBadge" class="badge-ai" style="display:none;">✦ AI</span></label>
+            <input type="number" id="distKm" placeholder="e.g. 380">
+          </div>
+          <div class="fgroup"><label>Drive Time (one way)</label><input type="text" id="driveTime" placeholder="e.g. 4 hrs 15 min" readonly></div>
+        </div>
+        <div class="fgroup">
+          <label>Event Date</label>
+          <input type="date" id="calcEventDate" style="color-scheme:dark;">
+        </div>
+        <div class="g3">
+          <div class="fgroup"><label>Nights</label><input type="number" id="numNights" value="1" min="0"></div>
+          <div class="fgroup"><label>Total Days</label><input type="number" id="tripDays" value="2" min="1"></div>
+          <div class="fgroup"><label>Expected Guests</label><input type="number" id="numGuests" placeholder="80"></div>
+        </div>
+        <div class="fgroup">
+          <label>Fuel $/litre <span id="fuelBadge" class="badge-ai" style="display:none;">✦ Forecast</span></label>
+          <input type="number" id="fuelPrice" value="2.10" step="0.01">
+          <div class="tip" id="fuelTip">Use Look Up for a forecast, or adjust manually.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px;">
+      <div class="card" style="margin-bottom:0;">
+        <div class="ctitle">Accommodation <span id="accomBadge" class="badge-ai" style="display:none;">✦ AI</span></div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="fgroup"><label>Recommended Property</label><input type="text" id="accomName" placeholder="Auto-filled after Look Up, or enter manually"></div>
+          <div class="g2">
+            <div class="fgroup"><label>Cost per Night ($)</label><input type="number" id="accomPerNight" placeholder="e.g. 185"></div>
+            <div class="fgroup"><label>Distance from Centre</label><input type="text" id="accomDist" placeholder="e.g. 1.2 km"></div>
+          </div>
+          <div class="tip" id="accomNote">Best option under $250/night within 5km.</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:0;">
+        <div class="ctitle">Performers</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="fgroup"><label>Primary Performer</label><select id="primaryPerformer"><option value="p1">Sean Piper</option></select></div>
+          <div class="fgroup"><label>Second Performer (optional)</label><select id="secondPerformer"><option value="">None</option></select></div>
+          <div id="p2RateNote" class="tip" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:0;">
+        <div class="ctitle">Performance Fees</div>
+        <div id="perfList"></div>
+        <button class="btn btn-outline btn-sm" id="btnAddPerf">+ Add Performance</button>
+        <div id="discountRow" style="display:none;margin-top:12px;">
+          <hr class="divider">
+          <label>Multi-Show Discount % <span style="font-size:10px;color:var(--muted);">(performance fees only)</span></label>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+            <input type="number" id="discountPct" value="0" min="0" max="50" style="width:80px;">
+            <span style="font-size:12px;color:var(--muted);">% off combined performance subtotal</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Select Transport Modes to Compare</div>
+    <div class="tcards">
+      <div class="tcard on" data-mode="flight"><div class="te">✈️</div><div class="tn">Flight</div><div class="tk">✓ selected</div></div>
+      <div class="tcard on" data-mode="train"><div class="te">🚂</div><div class="tn">Train</div><div class="tk">✓ selected</div></div>
+      <div class="tcard on" data-mode="bus"><div class="te">🚌</div><div class="tn">Coach</div><div class="tk">✓ selected</div></div>
+      <div class="tcard on" data-mode="selfDrive"><div class="te">🚗</div><div class="tn">Self Drive</div><div class="tk">✓ selected</div></div>
+      <div class="tcard on" data-mode="rentalCar"><div class="te">🚙</div><div class="tn">Rental Car</div><div class="tk">✓ selected</div></div>
+    </div>
+    <div id="rentalInfo" style="display:none;" class="sbox info"></div>
+    <div class="g5" style="margin:10px 0 8px;">
+      <div class="fgroup"><label>Override Flight ($)</label><input type="number" id="ov_flight" placeholder="auto"></div>
+      <div class="fgroup"><label>Override Train ($)</label><input type="number" id="ov_train" placeholder="auto"></div>
+      <div class="fgroup"><label>Override Coach ($)</label><input type="number" id="ov_bus" placeholder="auto"></div>
+      <div class="fgroup"><label>Self Drive Extras ($)</label><input type="number" id="ov_selfDrive" placeholder="auto"></div>
+      <div class="fgroup"><label>Rental Base/Day ($)</label><input type="number" id="ov_rentalCar" placeholder="auto"></div>
+    </div>
+    <div class="tip">Leave blank for auto-estimates. Override any field to use your own figure.</div>
+  </div>
+
+  <div class="card" id="resultsCard" style="display:none;">
+    <div class="ctitle">Comparison Results</div>
+    <div class="scroll"><table class="rtable" id="resultsTable"></table></div>
+    <div id="dayTripNote" style="display:none;margin-bottom:8px;padding:8px 12px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.3);border-radius:7px;font-size:12px;color:var(--gold);">Day trip mode (under 80km) — accommodation, meals & daily allowance excluded.</div><div style="margin-top:8px;font-size:11px;color:#445566;">15% buffer (max $300) applied · Accommodation, meals &amp; allowance identical across all modes · Performance fees included</div>
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(122,106,154,.12);border:1px solid rgba(122,106,154,.4);border-radius:8px;display:flex;align-items:center;gap:12px;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text);text-transform:none;letter-spacing:0;">
+        <input type="checkbox" id="chkCP" style="width:16px;height:16px;accent-color:#b09acc;flex-shrink:0;">
+        <span><strong style="color:#b09acc;">CrowdPleaser booking</strong> — add 12% platform fee to gross up the quote total</span>
+      </label>
+      <span id="cpFeeNote" style="display:none;font-size:11px;color:#b09acc;white-space:nowrap;"></span>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    <button class="btn btn-gold" id="btnCalc">🧮 Calculate All Options</button>
+    <button class="btn btn-outline" id="btnClear">↺ Clear</button>
+    <span id="calcMsg" style="font-size:12px;color:var(--muted);"></span>
+  </div>
+</div>
+
+<!-- QUOTE -->
+<div id="panel-quote" class="panel">
+  <div class="g2" style="margin-bottom:18px;">
+    <div class="card">
+      <div class="ctitle">Client Details</div>
+      <div style="display:flex;flex-direction:column;gap:11px;">
+        <div class="fgroup"><label>Contact Name</label><input type="text" id="q_name" placeholder="e.g. Jane Smith"></div>
+        <div class="fgroup"><label>Company / Organisation</label><input type="text" id="q_company" placeholder="e.g. Acme Events Pty Ltd"></div>
+        <div class="g2">
+          <div class="fgroup"><label>Email</label><input type="email" id="q_email" placeholder="jane@company.com.au"></div>
+          <div class="fgroup"><label>Phone</label><input type="text" id="q_phone" placeholder="0400 000 000"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Event Details</div>
+      <div style="display:flex;flex-direction:column;gap:11px;">
+        <div class="fgroup"><label>Event Name / Type</label><input type="text" id="q_event" placeholder="e.g. Annual Gala Dinner"></div>
+        <div class="g2">
+          <div class="fgroup">
+            <label>Event Date</label>
+            <input type="date" id="q_date" style="color-scheme:dark;">
+          </div>
+          <div class="fgroup"><label>Venue</label><input type="text" id="q_venue" placeholder="e.g. Coffs Harbour Yacht Club"></div>
+        </div>
+        <div class="g2">
+          <div class="fgroup"><label>Bump In Time</label><input type="text" id="q_bumpin" placeholder="e.g. 6:00 PM"></div>
+          <div class="fgroup"><label>Show Time</label><input type="text" id="q_show" placeholder="e.g. 7:00 PM"></div>
+        </div>
+        <div class="fgroup"><label>Quote Reference (blank = auto)</label><input type="text" id="q_ref" placeholder="e.g. SP-2026-001"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Select Travel Mode for this Quote</div>
+    <div id="quoteModes"><div style="color:var(--muted);font-style:italic;font-size:13px;">Run the Calculator first to populate options.</div></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Quote Summary</div>
+    <div id="quoteSummary"><div style="color:var(--muted);font-style:italic;font-size:13px;">Complete the calculator and select a travel mode above.</div></div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <button class="btn btn-green" id="btnPDF">📄 Full Quote PDF</button>
+    <button class="btn btn-outline" id="btnPDFCP" style="border-color:#7a6a9a;color:#b09acc;">🔒 CrowdPleaser Quote</button>
+    <button class="btn btn-outline" id="btnPDFInternal" style="border-color:#3a6a8a;color:#7ab0cc;">📋 Internal Booking Sheet</button>
+    <span id="pdfMsg" style="font-size:12px;color:var(--muted);margin-top:6px;display:block;"></span>
+    <div style="font-size:10px;color:var(--muted);margin-top:2px;">CrowdPleaser: no contact details, no rider, no investment summary. Internal: full data for your records.</div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="panel-settings" class="panel">
+  <div class="card">
+    <div class="ctitle">Performer Profiles</div>
+    <div class="ptabs" id="perfTabs">
+      <button class="ptab on" data-ptab="p1">Primary Performer</button>
+      <button class="ptab"    data-ptab="p2">Second Performer</button>
+    </div>
+    <div id="ptab-p1">
+      <div class="g2" style="gap:12px;margin-bottom:14px;">
+        <div class="fgroup"><label>Business / Trading Name</label><input type="text" id="s_bizName" placeholder="Sean Piper Magic"></div>
+        <div class="fgroup"><label>ABN</label><input type="text" id="s_abn" placeholder="42 665 798 220"></div>
+        <div class="fgroup"><label>Performer Name</label><input type="text" id="s_perfName" placeholder="Sean Piper"></div>
+        <div class="fgroup"><label>Title / Tagline</label><input type="text" id="s_perfTitle" placeholder="Magician &amp; Mentalist"></div>
+        <div class="fgroup"><label>Email</label><input type="email" id="s_email" placeholder="piper.sean@gmail.com"></div>
+        <div class="fgroup"><label>Phone</label><input type="text" id="s_phone" placeholder="0400 000 000"></div>
+        <div class="fgroup"><label>Website</label><input type="text" id="s_web"></div>
+        <div class="fgroup"><label>Default Home Location</label><input type="text" id="s_home" placeholder="Rochedale QLD"></div>
+      </div>
+      <div class="fgroup" style="margin-bottom:14px;">
+        <label>Logo</label>
+        <div class="logo-area" id="logoArea1"><div style="font-size:12px;color:var(--muted);">Click to upload logo</div><img id="s_logoPreview" style="max-height:40px;margin-top:8px;display:none;"></div>
+        <input type="file" id="logoFile1" accept="image/*" style="display:none;">
+      </div>
+    </div>
+    <div id="ptab-p2" style="display:none;">
+      <div style="margin-bottom:12px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;">
+          <input type="checkbox" id="s_p2on" style="width:auto;accent-color:var(--gold);"> Enable Second Performer
+        </label>
+      </div>
+      <div class="g2" style="gap:12px;margin-bottom:14px;">
+        <div class="fgroup"><label>Business / Trading Name</label><input type="text" id="s_p2bizName"></div>
+        <div class="fgroup"><label>ABN</label><input type="text" id="s_p2abn"></div>
+        <div class="fgroup"><label>Performer Name</label><input type="text" id="s_p2perfName"></div>
+        <div class="fgroup"><label>Title / Tagline</label><input type="text" id="s_p2perfTitle"></div>
+        <div class="fgroup"><label>Email</label><input type="email" id="s_p2email"></div>
+        <div class="fgroup"><label>Phone</label><input type="text" id="s_p2phone"></div>
+        <div class="fgroup"><label>Website</label><input type="text" id="s_p2web"></div>
+        <div class="fgroup"><label>Home Location</label><input type="text" id="s_p2home"></div>
+      </div>
+      <div class="fgroup" style="margin-bottom:14px;">
+        <label>Logo</label>
+        <div class="logo-area" id="logoArea2"><div style="font-size:12px;color:var(--muted);">Click to upload logo</div><img id="s_logo2Preview" style="max-height:40px;margin-top:8px;display:none;"></div>
+        <input type="file" id="logoFile2" accept="image/*" style="display:none;">
+      </div>
+      <hr class="divider">
+      <div style="margin-bottom:10px;font-size:12px;color:var(--muted);">Custom performance rates for this performer:</div>
+      <div id="p2RateList"></div>
+      <button class="btn btn-outline btn-sm" id="btnAddP2Rate">+ Add Rate Type</button>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+      <button class="btn btn-gold" id="btnSave">💾 Save All Defaults</button>
+      <span class="sf" id="savedFlash">✓ Saved!</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Calculation Assumptions</div>
+    <div class="g3" style="gap:12px;">
+      <div class="fgroup"><label>Meals per Day ($)</label><input type="number" id="s_meals" value="60"></div>
+      <div class="fgroup"><label>Daily Allowance ($)</label><input type="number" id="s_allow" value="25"></div>
+      <div class="fgroup"><label>Buffer % (max $300)</label><input type="number" id="s_buf" value="15"></div>
+      <div class="fgroup"><label>Fuel Economy L/100km</label><input type="number" id="s_eco" value="10" step="0.5"></div>
+      <div class="fgroup"><label>ATO Wear &amp; Tear $/km</label><input type="number" id="s_wear" value="0.10" step="0.01"></div>
+      <div class="fgroup"><label>Airport Parking $/day</label><input type="number" id="s_park" value="20"></div>
+    </div>
+    <div style="margin-top:14px;"><button class="btn btn-gold" id="btnSave2">💾 Save</button></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Primary Performer — Rate Schedule</div>
+    <div class="g3" style="gap:12px;">
+      <div style="background:var(--bg3);border-radius:8px;padding:14px;">
+        <div style="color:var(--gold);font-weight:700;margin-bottom:10px;">🎩 Stage Show</div>
+        <div class="fgroup"><label>Rate per block ($)</label><input type="number" id="r_stage_price" value="880"></div>
+        <div class="fgroup" style="margin-top:8px;"><label>Block duration (min)</label><input type="number" id="r_stage_block" value="15"></div>
+      </div>
+      <div style="background:var(--bg3);border-radius:8px;padding:14px;">
+        <div style="color:var(--gold);font-weight:700;margin-bottom:10px;">✋ Close Up Show</div>
+        <div class="fgroup"><label>Rate per block ($)</label><input type="number" id="r_closeup_price" value="660"></div>
+        <div class="fgroup" style="margin-top:8px;"><label>Block duration (min)</label><input type="number" id="r_closeup_block" value="20"></div>
+      </div>
+      <div style="background:var(--bg3);border-radius:8px;padding:14px;">
+        <div style="color:var(--gold);font-weight:700;margin-bottom:10px;">🚶 Roving Entertainment</div>
+        <div class="fgroup"><label>First hour rate ($)</label><input type="number" id="r_roving_first" value="880"></div>
+        <div class="fgroup" style="margin-top:8px;"><label>Additional hr rate ($)</label><input type="number" id="r_roving_add" value="440"></div>
+        <div class="fgroup" style="margin-top:8px;"><label>Max hours</label><input type="number" id="r_roving_max" value="3" min="1" max="8"></div>
+      </div>
+    </div>
+    <div style="margin-top:12px;background:var(--bg3);border-radius:8px;padding:14px;">
+      <div style="color:var(--gold);font-weight:700;margin-bottom:6px;">✏️ Other / Custom</div>
+      <div class="tip">When "Other" is selected as performance type, enter the fee amount directly.</div>
+    </div>
+    <div style="margin-top:14px;"><button class="btn btn-gold" id="btnSave3">💾 Save Rates</button></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// --------------------------- STORAGE
+function loadS(){try{return JSON.parse(localStorage.getItem('sp_v6')||'{}');}catch(e){return{};}}
+function saveS(d){try{localStorage.setItem('sp_v6',JSON.stringify(d));}catch(e){}}
+function gv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+function gn(id){return parseFloat(document.getElementById(id).value)||0;}
+function sv(id,v){var e=document.getElementById(id);if(e)e.value=v;}
+
+// --------------------------- LOGO
+var LOGO_B64 = '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';
+var LOGO2_B64 = '';
+document.getElementById('logoImg').src = 'data:image/jpeg;base64,' + LOGO_B64;
+
+// --------------------------- TAB NAVIGATION
+document.querySelectorAll('#mainTabs .tab').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('#mainTabs .tab').forEach(function(b){b.classList.remove('on');});
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+    btn.classList.add('on');
+    document.getElementById('panel-'+btn.getAttribute('data-panel')).classList.add('on');
+    if(btn.getAttribute('data-panel')==='quote') renderQuoteTab();
+  });
+});
+
+// --------------------------- SETTINGS PERFORMER TABS
+document.querySelectorAll('#perfTabs .ptab').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('#perfTabs .ptab').forEach(function(b){b.classList.remove('on');});
+    ['p1','p2'].forEach(function(k){document.getElementById('ptab-'+k).style.display='none';});
+    btn.classList.add('on');
+    document.getElementById('ptab-'+btn.getAttribute('data-ptab')).style.display='block';
+  });
+});
+
+// --------------------------- LOGO UPLOAD
+document.getElementById('logoArea1').addEventListener('click', function(){document.getElementById('logoFile1').click();});
+document.getElementById('logoArea2').addEventListener('click', function(){document.getElementById('logoFile2').click();});
+document.getElementById('logoFile1').addEventListener('change', function(e){
+  var f=e.target.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    LOGO_B64=ev.target.result.split(',')[1];
+    var mediaType=f.type||'image/jpeg';
+    document.getElementById('logoImg').src=ev.target.result;
+    var p=document.getElementById('s_logoPreview');p.src=ev.target.result;p.style.display='block';
+  };
+  r.readAsDataURL(f);
+});
+document.getElementById('logoFile2').addEventListener('change', function(e){
+  var f=e.target.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    LOGO2_B64=ev.target.result.split(',')[1];
+    var p=document.getElementById('s_logo2Preview');p.src=ev.target.result;p.style.display='block';
+  };
+  r.readAsDataURL(f);
+});
+
+// --------------------------- DATE PICKER (native)
+var MNAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function getDateDisplay(isoVal){
+  // Convert yyyy-mm-dd to "Saturday, 18 July 2026"
+  if(!isoVal) return '';
+  var parts=isoVal.split('-');
+  if(parts.length!==3) return isoVal;
+  var dt=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  var days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return days[dt.getDay()]+', '+dt.getDate()+' '+months[dt.getMonth()]+' '+dt.getFullYear();
+}
+document.getElementById('calcEventDate').addEventListener('change',function(){
+  var iso=this.value;
+  document.getElementById('q_date').value=iso;
+  if(iso){var parts=iso.split('-');var months=['January','February','March','April','May','June','July','August','September','October','November','December'];fetchFuelForecast(months[parseInt(parts[1])-1],parts[0]);}
+});
+document.getElementById('q_date').addEventListener('change',function(){
+  document.getElementById('calcEventDate').value=this.value;
+});
+
+// --------------------------- SAVE / LOAD DEFAULTS
+function loadDefaults(){
+  var d=loadS();
+  var m={'s_bizName':'bizName','s_abn':'abn','s_perfName':'perfName','s_perfTitle':'perfTitle',
+         's_email':'email','s_phone':'phone','s_web':'web','s_home':'home',
+         's_meals':'meals','s_allow':'allow','s_buf':'buf','s_eco':'eco','s_wear':'wear','s_park':'park',
+         'r_stage_price':'r_stage_price','r_stage_block':'r_stage_block',
+         'r_closeup_price':'r_closeup_price','r_closeup_block':'r_closeup_block',
+         'r_roving_first':'r_roving_first','r_roving_add':'r_roving_add','r_roving_max':'r_roving_max',
+         's_p2bizName':'p2bizName','s_p2abn':'p2abn','s_p2perfName':'p2perfName',
+         's_p2perfTitle':'p2perfTitle','s_p2email':'p2email','s_p2phone':'p2phone',
+         's_p2web':'p2web','s_p2home':'p2home'};
+  Object.keys(m).forEach(function(elId){if(d[m[elId]])sv(elId,d[m[elId]]);});
+  if(d.home) sv('homeLocation',d.home);
+  if(d.p2on) document.getElementById('s_p2on').checked=true;
+  if(d.p2rates) d.p2rates.forEach(function(r){addP2Rate(r.n,r.p,r.u);});
+  if(d.logo2){LOGO2_B64=d.logo2;var p=document.getElementById('s_logo2Preview');p.src='data:image/jpeg;base64,'+d.logo2;p.style.display='block';}
+  refreshPerformers();
+}
+function doSave(){
+  var d=loadS();
+  ['bizName','abn','perfName','perfTitle','email','phone','web','home',
+   'meals','allow','buf','eco','wear','park',
+   'r_stage_price','r_stage_block','r_closeup_price','r_closeup_block',
+   'r_roving_first','r_roving_add','r_roving_max',
+   'p2bizName','p2abn','p2perfName','p2perfTitle','p2email','p2phone','p2web','p2home'
+  ].forEach(function(k){
+    var elId = k.startsWith('p2')||k.startsWith('r_') ? 's_'+k : 's_'+k;
+    // map key to element id
+    var idMap={'bizName':'s_bizName','abn':'s_abn','perfName':'s_perfName','perfTitle':'s_perfTitle',
+               'email':'s_email','phone':'s_phone','web':'s_web','home':'s_home',
+               'meals':'s_meals','allow':'s_allow','buf':'s_buf','eco':'s_eco','wear':'s_wear','park':'s_park',
+               'r_stage_price':'r_stage_price','r_stage_block':'r_stage_block',
+               'r_closeup_price':'r_closeup_price','r_closeup_block':'r_closeup_block',
+               'r_roving_first':'r_roving_first','r_roving_add':'r_roving_add','r_roving_max':'r_roving_max',
+               'p2bizName':'s_p2bizName','p2abn':'s_p2abn','p2perfName':'s_p2perfName',
+               'p2perfTitle':'s_p2perfTitle','p2email':'s_p2email','p2phone':'s_p2phone',
+               'p2web':'s_p2web','p2home':'s_p2home'};
+    d[k]=gv(idMap[k]);
+  });
+  d.p2on=document.getElementById('s_p2on').checked;
+  d.p2rates=[];
+  document.querySelectorAll('.p2rate-row').forEach(function(row){
+    d.p2rates.push({n:row.querySelector('.p2rn').value,p:row.querySelector('.p2rp').value,u:row.querySelector('.p2ru').value});
+  });
+  if(LOGO2_B64) d.logo2=LOGO2_B64;
+  saveS(d);
+  var fl=document.getElementById('savedFlash');
+  fl.classList.add('show'); setTimeout(function(){fl.classList.remove('show');},2000);
+  refreshPerformers();
+}
+['btnSave','btnSave2','btnSave3'].forEach(function(id){
+  document.getElementById(id).addEventListener('click', doSave);
+});
+
+// --------------------------- P2 RATES
+var p2rc=0;
+function addP2Rate(n,p,u){
+  p2rc++;
+  var id='p2r'+p2rc;
+  var div=document.createElement('div');
+  div.className='prow p2rate-row'; div.id=id; div.style.cssText='margin-bottom:8px;padding:12px;';
+  div.innerHTML='<button class="btn btn-danger btn-sm" style="position:absolute;top:8px;right:8px;" id="rm_'+id+'">x</button>'+
+    '<div class="g3" style="gap:10px;">'+
+    '<div class="fgroup"><label>Name</label><input type="text" class="p2rn" placeholder="e.g. Comedy Set" value="'+(n||'')+'"></div>'+
+    '<div class="fgroup"><label>Price ($)</label><input type="number" class="p2rp" placeholder="750" value="'+(p||'')+'"></div>'+
+    '<div class="fgroup"><label>Per (unit)</label><input type="text" class="p2ru" placeholder="per 30 min" value="'+(u||'')+'"></div>'+
+    '</div>';
+  document.getElementById('p2RateList').appendChild(div);
+  document.getElementById('rm_'+id).addEventListener('click', function(){div.remove();});
+}
+document.getElementById('btnAddP2Rate').addEventListener('click', function(){addP2Rate('','','');});
+
+// --------------------------- PERFORMER DROPDOWNS
+function refreshPerformers(){
+  var d=loadS();
+  var p1n=d.perfName||d.bizName||'Sean Piper';
+  var p1sel=document.getElementById('primaryPerformer');
+  p1sel.innerHTML='<option value="p1">'+p1n+'</option>';
+  var p2sel=document.getElementById('secondPerformer');
+  p2sel.innerHTML='<option value="">None</option>';
+  if(d.p2on&&d.p2perfName){
+    var opt=document.createElement('option');
+    opt.value='p2'; opt.textContent=d.p2perfName+(d.p2perfTitle?' - '+d.p2perfTitle:'');
+    p2sel.appendChild(opt);
+    if(d.lastP2) p2sel.value=d.lastP2;
+  }
+  p2sel.addEventListener('change', function(){
+    var note=document.getElementById('p2RateNote');
+    var d2=loadS();
+    if(p2sel.value==='p2'&&d2.p2rates&&d2.p2rates.length){
+      note.textContent='Rates: '+d2.p2rates.map(function(r){return r.n+': $'+r.p+' '+r.u;}).join(' . ');
+      note.style.display='block';
+    } else { note.style.display='none'; }
+    var s=loadS(); s.lastP2=p2sel.value; saveS(s);
+  });
+}
+
+// --------------------------- TRANSPORT TOGGLES
+var selModes=new Set(['flight','train','bus','selfDrive','rentalCar']);
+document.querySelectorAll('.tcard').forEach(function(card){
+  card.addEventListener('click', function(){
+    var m=card.getAttribute('data-mode');
+    if(card.classList.contains('on')){
+      if(selModes.size<=1) return;
+      card.classList.remove('on'); selModes.delete(m);
+    } else {
+      card.classList.add('on'); selModes.add(m);
+    }
+  });
+});
+
+// --------------------------- FUEL FORECAST
+function fetchFuelForecast(month, year){
+  var fuelTip = document.getElementById('fuelTip');
+  var fuelBadge = document.getElementById('fuelBadge');
+  fuelTip.textContent = 'Fetching forecast for ' + month + ' ' + year + '...';
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:120,
+      messages:[{role:'user',content:'Return ONLY a raw JSON object, no markdown. Forecast the average ULP91 petrol price in cents per litre in Queensland, Australia for '+month+' '+year+'. Example: {"fuelPrice":2.08,"fuelNote":"Based on current crude prices and QLD seasonal trends"}'}]
+    })
+  }).then(function(r){return r.json();}).then(function(data){
+    var raw=(data.content&&data.content[0]&&data.content[0].text)||'{}';
+    raw=raw.replace(/```[a-z]*/gi,'').replace(/```/g,'').trim();
+    var s=raw.indexOf('{'),e=raw.lastIndexOf('}');
+    if(s>=0&&e>s) raw=raw.substring(s,e+1);
+    var res=JSON.parse(raw);
+    if(res.fuelPrice){
+      sv('fuelPrice', res.fuelPrice);
+      fuelBadge.style.display='inline';
+      fuelTip.textContent='* '+(res.fuelNote||'Forecast for '+month+' '+year);
+    }
+  }).catch(function(){
+    // Offline fallback - use historical estimates
+    var adj={'January':.05,'February':.03,'March':.02,'April':-.01,'May':-.02,'June':-.03,'July':-.02,'August':0,'September':.02,'October':.03,'November':.04,'December':.06};
+    sv('fuelPrice',(2.05+(adj[month]||0)).toFixed(2));
+    fuelBadge.style.display='inline';
+    fuelTip.textContent='Estimated for '+month+' '+year+' (offline)';
+  });
+}
+
+// --------------------------- LOOK UP
+var _airport='', _rentalCo='', _rentalLoc='';
+document.getElementById('btnLookup').addEventListener('click', function(){
+  var dest=gv('destination'); var home=gv('homeLocation')||'Rochedale QLD';
+  if(!dest){alert('Please enter a destination first.');return;}
+  var evDate=gv('calcEventDate');
+  var month=MNAMES[new Date().getMonth()]; var year=String(new Date().getFullYear());
+  if(evDate&&evDate.indexOf('-')>=0){var pts=evDate.split('-');month=MNAMES[parseInt(pts[1])-1]||month;year=pts[0]||year;}
+  var btn=document.getElementById('btnLookup');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  var st=document.getElementById('lookupStatus');
+  st.style.display='flex'; st.className='sbox info';
+  st.innerHTML='<span class="spin"></span> Researching destination, accommodation, fuel &amp; rental car...';
+  var prompt='You are a travel research assistant for Australia. Return ONLY a raw JSON object with no markdown, no code fences, no explanation whatsoever - just the JSON. Research this trip: from "'+home+'" to "'+dest+'" travelling in '+month+' '+year+'. Return exactly this structure: {"distanceKm":<integer one-way driving km from '+home+' to '+dest+'>,"driveTime":"<driving time e.g. 4 hrs 15 min>","accomName":"<actual real property name e.g. Opal Cove Resort or Best Western Plus - must be a real bookable property in or near '+dest+' under $250/night>","accomPerNight":<integer AUD nightly rate under 250>,"accomDistKm":"<distance from '+dest+' town centre e.g. 1.2 km>","accomNote":"<one sentence about why this property>","fuelPrice":<float cents per litre ULP91 forecast for QLD in '+month+' '+year+' e.g. 2.08>,"fuelNote":"<brief fuel price basis>","flightReturn":<integer AUD return economy airfare from Brisbane to nearest airport to '+dest+'>,"trainReturn":<integer AUD return train fare or 0 if no service>,"busReturn":<integer AUD return coach fare or 0 if no service>,"nearestAirport":"<IATA code - Airport Name>","rentalCompany":"<name of nearest major car rental company branch to '+home+'>","rentalBranch":"<suburb and city of that branch>"}';
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:900,messages:[{role:'user',content:prompt}]})
+  }).then(function(r){return r.json();}).then(function(data){
+    var raw=(data.content&&data.content[0]&&data.content[0].text)||'{}';
+    raw=raw.replace(/```[a-z]*/gi,'').replace(/```/g,'').trim();
+    var s=raw.indexOf('{'),e=raw.lastIndexOf('}');
+    if(s>=0&&e>s) raw=raw.substring(s,e+1);
+    applyLookup(JSON.parse(raw));
+    st.className='sbox ok'; st.innerHTML='OK Look Up complete - review and adjust any field if needed.';
+  }).catch(function(err){
+    console.error('Lookup error',err);
+    applyEstimates(dest,month,year);
+    st.className='sbox ok'; st.innerHTML='OK Estimated values applied (offline). Adjust any field manually.';
+  }).finally(function(){btn.disabled=false;btn.innerHTML=' Look Up';});
+});
+function applyLookup(r){
+  if(r.distanceKm){sv('distKm',r.distanceKm);document.getElementById('distBadge').style.display='inline';}
+  if(r.driveTime) sv('driveTime',r.driveTime);
+  if(r.accomName){sv('accomName',r.accomName);document.getElementById('accomBadge').style.display='inline';}
+  if(r.accomPerNight) sv('accomPerNight',r.accomPerNight);
+  if(r.accomDistKm) sv('accomDist',r.accomDistKm);
+  if(r.accomNote) document.getElementById('accomNote').textContent='* '+r.accomNote;
+  if(r.fuelPrice){sv('fuelPrice',r.fuelPrice);document.getElementById('fuelBadge').style.display='inline';document.getElementById('fuelTip').textContent='* '+(r.fuelNote||'AI forecast');}
+  if(r.flightReturn&&!gv('ov_flight')) sv('ov_flight',r.flightReturn);
+  if(r.trainReturn&&!gv('ov_train')) sv('ov_train',r.trainReturn);
+  if(r.busReturn&&!gv('ov_bus')) sv('ov_bus',r.busReturn);
+  _airport=r.nearestAirport||''; _rentalCo=r.rentalCompany||''; _rentalLoc=r.rentalBranch||'';
+  if(_rentalCo){var ri=document.getElementById('rentalInfo');ri.style.display='flex';ri.textContent=' Nearest rental: '+_rentalCo+(_rentalLoc?' - '+_rentalLoc:'');}
+}
+function applyEstimates(dest,month,year){
+  var kms={
+    // Brisbane metro & surrounds (from Rochedale)
+    'brisbane cbd':20,'brisbane city':20,'city':20,'cbd':20,'south bank':18,
+    'fortitude valley':22,'new farm':23,'paddington':18,'milton':18,'toowong':16,
+    'indooroopilly':14,'taringa':15,'st lucia':16,'west end':18,'woolloongabba':15,
+    'kangaroo point':17,'spring hill':20,'bowen hills':22,'albion':25,'chermside':28,
+    'nundah':26,'clayfield':24,'ascot':26,'eagle farm':28,'hendra':27,
+    'carindale':12,'carina':13,'cannon hill':14,'morningside':16,'hawthorne':18,
+    'bulimba':19,'balmoral':18,'wynnum':22,'manly':24,'lota':24,'tingalpa':16,
+    'eight mile plains':8,'upper mount gravatt':9,'mount gravatt':10,'wishart':9,
+    'mansfield':8,'macgregor':8,'robertson':9,'sunnybank':10,'sunnybank hills':9,
+    'runcorn':8,'calamvale':9,'parkinson':10,'stretton':9,'drewvale':10,
+    'springwood':15,'daisy hill':12,'slacks creek':12,'logan central':18,
+    'logan':18,'meadowbrook':19,'browns plains':16,'regents park':15,
+    'woodridge':16,'kingston':18,'loganholme':20,'cornubia':18,
+    'beenleigh':30,'stapylton':30,'ormeau':45,'coomera':52,'oxenford':60,
+    'helensvale':62,'runaway bay':68,'labrador':70,'southport':72,
+    'surfers paradise':75,'broadbeach':76,'robina':74,'varsity lakes':76,
+    'burleigh heads':80,'palm beach':84,'coolangatta':90,'tweed heads':92,
+    'gold coast':75,'ipswich':35,'springfield':28,'ripley':35,'redbank':32,
+    'goodna':28,'oxley':18,'darra':18,'wacol':22,'richlands':20,
+    'inala':20,'durack':20,'forest lake':22,'jindalee':18,'mount ommaney':18,
+    'kenmore':20,'the gap':22,'keperra':22,'ferny grove':28,'samford':35,
+    'strathpine':28,'brendale':30,'petrie':32,'kallangur':32,'mango hill':36,
+    'narangba':40,'burpengary':44,'morayfield':46,'caboolture':52,
+    'redcliffe':38,'scarborough':42,'deception bay':42,'rothwell':40,
+    'north lakes':36,'griffin':36,'murrumba downs':34,'dakabin':38,
+    'sunshine coast':100,'maroochydore':100,'mooloolaba':105,'caloundra':95,
+    'noosa':140,'noosaville':140,'tewantin':142,'cooroy':132,'nambour':108,
+    'kawana':103,'bokarina':104,'birtinya':103,'sippy downs':102,
+    'glass house mountains':70,'beerwah':74,'landsborough':88,
+    'toowoomba':130,'dalby':215,'warwick':165,'stanthorpe':210,
+    'goondiwindi':355,'miles':365,'roma':490,'charleville':760,
+    'bundaberg':370,'bargara':378,'hervey bay':295,'maryborough':270,
+    'gympie':175,'tin can bay':240,'rainbow beach':260,
+    'rockhampton':640,'yeppoon':680,'emerald':940,'longreach':1200,
+    'gladstone':540,'seventeen seventy':580,'agnes water':580,
+    'mackay':970,'airlie beach':1120,'proserpine':1110,'bowen':1180,
+    'townsville':1350,'charters towers':1470,'magnetic island':1360,
+    'cairns':1700,'port douglas':1780,'mossman':1800,'daintree':1830,
+    'innisfail':1600,'tully':1550,'mission beach':1590,
+    'mount isa':1800,'cloncurry':1700,'normanton':1950,'karumba':1980,
+    'sydney':920,'parramatta':940,'penrith':960,'wollongong':890,
+    'newcastle':850,'maitland':870,'hunter valley':890,'port macquarie':590,
+    'tamworth':560,'armidale':620,'coffs harbour':380,'grafton':320,
+    'lismore':260,'ballina':230,'byron bay':175,
+    'melbourne':1750,'geelong':1790,'ballarat':1830,'bendigo':1800,
+    'adelaide':1970,'perth':4300,'darwin':3400,'canberra':1250,
+    'hobart':2100,'launceston':2000
+  };
+  var dl=dest.toLowerCase(); var km=null;
+  Object.keys(kms).forEach(function(k){if(dl.indexOf(k)>=0){if(km===null||kms[k]<km)km=kms[k];}});
+  if(km===null) km=200; // unknown destination - use 200 as neutral default instead of 400
+  sv('distKm',km); document.getElementById('distBadge').style.display='inline';
+  var h=Math.floor(km/90),mins=Math.round((km/90-Math.floor(km/90))*60/15)*15;
+  document.getElementById('driveTime').value=h+' hrs'+(mins?' '+mins+' min':'');
+  var fa={'January':.05,'February':.03,'March':.02,'April':-.01,'May':-.02,'June':-.03,'July':-.02,'August':0,'September':.02,'October':.03,'November':.04,'December':.06};
+  sv('fuelPrice',(2.05+(fa[month]||0)).toFixed(2));
+  document.getElementById('fuelBadge').style.display='inline';
+  document.getElementById('fuelTip').textContent='Estimated for '+month+' '+year;
+  sv('accomPerNight',km<150?160:km<500?185:200);
+  document.getElementById('accomNote').textContent='Estimated cost near '+dest+'. Use Look Up when online for a specific property.';
+  _rentalCo='Europcar'; _rentalLoc='Brisbane City';
+  var ri=document.getElementById('rentalInfo'); ri.style.display='flex'; ri.textContent=' Estimated nearest rental: Europcar - Brisbane City';
+}
+
+// --------------------------- PERFORMANCES
+var perfCount=0; var perfIds=[];
+document.getElementById('btnAddPerf').addEventListener('click', function(){addPerf();});
+function addPerf(){
+  var d=loadS();
+  var hasP2=d.p2on&&d.p2perfName;
+  var p1n=d.perfName||d.bizName||'Sean Piper';
+  perfCount++; var id='pf'+perfCount; perfIds.push(id);
+  var sb=parseInt(d.r_stage_block)||15; var cb=parseInt(d.r_closeup_block)||20; var rm=parseInt(d.r_roving_max)||3;
+  var durOpts=''; for(var i=1;i<=8;i++) durOpts+='<option value="'+(sb*i)+'">'+(sb*i)+' min</option>';
+  var perfOpts='<option value="p1">'+p1n+'</option>';
+  if(hasP2) perfOpts+='<option value="p2">'+d.p2perfName+'</option>';
+  var div=document.createElement('div'); div.className='prow'; div.id=id;
+  div.innerHTML=(hasP2?'<div class="fgroup" style="margin-bottom:10px;"><label>Performer</label><select class="pf-who">'+perfOpts+'</select></div>':'')+
+    '<div class="g2" style="margin-bottom:10px;">'+
+    '<div class="fgroup"><label>Type</label><select class="pf-type"><option value="stage"> Stage Show</option><option value="closeup"> Close Up</option><option value="roving"> Roving</option><option value="other"> Other / Custom</option></select></div>'+
+    '<div class="fgroup pf-durwrap"><label>Duration</label><select class="pf-dur">'+durOpts+'</select></div>'+
+    '</div>'+
+    '<div class="g2">'+
+    '<div class="fgroup"><label>Fee ($)</label><input type="number" class="pf-fee" placeholder="auto"></div>'+
+    '<div class="fgroup"><label>Description for Quote</label><input type="text" class="pf-desc" placeholder="e.g. 30-min stage show"></div>'+
+    '</div>'+
+    '<button class="btn btn-danger btn-sm" style="position:absolute;top:8px;right:8px;" id="rm_'+id+'">x</button>';
+  document.getElementById('perfList').appendChild(div);
+  document.getElementById('rm_'+id).addEventListener('click', function(){div.remove();perfIds=perfIds.filter(function(x){return x!==id;});updDiscount();});
+  var typeEl=div.querySelector('.pf-type'); var durEl=div.querySelector('.pf-dur');
+  var whoEl=div.querySelector('.pf-who');
+  function recalc(){calcPerfFee(div);}
+  typeEl.addEventListener('change', function(){
+    var t=typeEl.value; var dw=div.querySelector('.pf-durwrap'); var feeEl=div.querySelector('.pf-fee');
+    if(t==='other'){dw.style.display='none';feeEl.removeAttribute('readonly');feeEl.value='';feeEl.placeholder='Enter fee';}
+    else{
+      dw.style.display='';feeEl.setAttribute('readonly','readonly');
+      var d2=loadS(); var sb2=parseInt(d2.r_stage_block)||15; var cb2=parseInt(d2.r_closeup_block)||20; var rm2=parseInt(d2.r_roving_max)||3;
+      var opts='';
+      if(t==='stage'){for(var i=1;i<=8;i++) opts+='<option value="'+(sb2*i)+'">'+(sb2*i)+' min</option>';}
+      else if(t==='closeup'){for(var i=1;i<=6;i++) opts+='<option value="'+(cb2*i)+'">'+(cb2*i)+' min</option>';}
+      else if(t==='roving'){for(var i=1;i<=rm2;i++) opts+='<option value="'+(i*60)+'">'+i+' hour'+(i>1?'s':'')+'</option>';}
+      durEl.innerHTML=opts; recalc();
+    }
+  });
+  durEl.addEventListener('change', recalc);
+  if(whoEl) whoEl.addEventListener('change', recalc);
+  feeEl_init(div);
+  updDiscount();
+}
+function feeEl_init(div){
+  var feeEl=div.querySelector('.pf-fee');
+  feeEl.setAttribute('readonly','readonly');
+  calcPerfFee(div);
+}
+function calcPerfFee(div){
+  var d=loadS(); var typeEl=div.querySelector('.pf-type'); var durEl=div.querySelector('.pf-dur');
+  var feeEl=div.querySelector('.pf-fee'); var whoEl=div.querySelector('.pf-who');
+  var t=typeEl.value; if(t==='other') return;
+  var dur=parseInt(durEl.value)||0;
+  var isP2=whoEl&&whoEl.value==='p2';
+  var fee=0;
+  if(isP2&&d.p2rates&&d.p2rates.length){fee=parseFloat(d.p2rates[0].p)||0;}
+  else{
+    var sp=parseFloat(d.r_stage_price)||880; var sb=parseInt(d.r_stage_block)||15;
+    var cp=parseFloat(d.r_closeup_price)||660; var cb=parseInt(d.r_closeup_block)||20;
+    var rf=parseFloat(d.r_roving_first)||880; var ra=parseFloat(d.r_roving_add)||440;
+    if(t==='stage') fee=Math.ceil(dur/sb)*sp;
+    else if(t==='closeup') fee=Math.ceil(dur/cb)*cp;
+    else if(t==='roving'){var hrs=dur/60;fee=hrs<=1?rf:rf+Math.ceil(hrs-1)*ra;}
+  }
+  feeEl.value=fee;
+}
+function updDiscount(){document.getElementById('discountRow').style.display=perfIds.length>1?'block':'none';}
+function getPerfs(){
+  return perfIds.map(function(id){
+    var div=document.getElementById(id); if(!div) return null;
+    var t=div.querySelector('.pf-type').value;
+    var durEl=div.querySelector('.pf-dur'); var dur=durEl?parseInt(durEl.value)||0:0;
+    var fee=parseFloat(div.querySelector('.pf-fee').value)||0;
+    var desc=div.querySelector('.pf-desc').value.trim();
+    var whoEl=div.querySelector('.pf-who'); var who=whoEl?whoEl.value:'p1';
+    var names={stage:'Stage Show',closeup:'Close Up Show',roving:'Roving Entertainment',other:'Custom Performance'};
+    var lbl=(names[t]||t)+(dur?' - '+dur+' min':'');
+    return{type:t,dur:dur,fee:fee,desc:desc||lbl,label:lbl,who:who};
+  }).filter(function(p){return p&&p.fee>0;});
+}
+
+// --------------------------- CALCULATE
+var calcResults=null;
+var MMETA={flight:{e:'',n:'Flight',c:'#d4a843',b:' Best Overall'},train:{e:'',n:'Train',c:'#5a8a3a',b:' Budget'},bus:{e:'',n:'Coach',c:'#7aaa5a',b:' Cheapest'},selfDrive:{e:'',n:'Self Drive',c:'#5b8fc4',b:' Flexible'},rentalCar:{e:'',n:'Rental Car',c:'#9b72cf',b:' Zero Risk'}};
+document.getElementById('btnCalc').addEventListener('click', function(){
+  var dist=gn('distKm'); if(!dist){alert('Please enter a distance (km). Use Look Up or enter manually.');return;}
+  var nights=gn('numNights')||1; var days=gn('tripDays')||2;
+  var accom=gn('accomPerNight')||200; var fuel=gn('fuelPrice')||2.10;
+  var d=loadS();
+  var meals=parseFloat(d.meals)||60; var allow=parseFloat(d.allow)||25;
+  var bufPct=parseFloat(d.buf)||15; var eco=parseFloat(d.eco)||10;
+  var wear=parseFloat(d.wear)||0.10; var park=parseFloat(d.park)||20;
+  var km2=dist*2; var fuelC=Math.round(km2*eco/100*fuel); var wearC=Math.round(km2*wear); var tolls=dist>100?25:10;
+  var perfs=getPerfs(); var discPct=gn('discountPct');
+  var pSub=perfs.reduce(function(s,p){return s+p.fee;},0);
+  var discAmt=(perfs.length>1&&discPct>0)?Math.round(pSub*discPct/100):0;
+  var dayTrip=dist<80; // under 80km = no accommodation, meals or daily allowance
+  var res={};
+  ['flight','train','bus','selfDrive','rentalCar'].forEach(function(m){
+    if(!selModes.has(m)) return;
+    var rows=[];
+    if(m==='flight'){
+      var fc=gn('ov_flight')||Math.max(280,Math.round(dist*1.4/10)*10);
+      rows=[{l:'Return flights (economy)',n:_airport?'BNE <-> '+_airport:'Economy return BNE',c:fc},{l:'Airport parking ('+(nights+1)+' days)',n:'$'+park+'/day',c:park*(nights+1)},{l:'Destination transfers (x2)',n:'Uber/taxi',c:30}];
+    } else if(m==='train'){
+      var tc=gn('ov_train')||Math.max(40,Math.round(dist*0.25/5)*5)*2;
+      rows=[{l:'Return train tickets',n:'Economy saver',c:tc},{l:'Home station transfers (x2)',n:'Uber/taxi',c:40},{l:'Destination transfers (x2)',n:'Station to hotel',c:30}];
+    } else if(m==='bus'){
+      var bc=gn('ov_bus')||Math.max(40,Math.round(dist*0.15/5)*5)*2;
+      rows=[{l:'Return coach tickets',n:'Greyhound',c:bc},{l:'Home terminal transfers (x2)',n:'Uber/taxi',c:40}];
+    } else if(m==='selfDrive'){
+      rows=[{l:'Fuel ('+km2+'km @ $'+fuel.toFixed(2)+'/L)',n:eco+'L/100km',c:fuelC},{l:'Road tolls (return)',n:'Est.',c:tolls},{l:'Wear & tear (ATO)',n:km2+'km x $'+wear.toFixed(2),c:wearC}];
+    } else if(m==='rentalCar'){
+      var rb=gn('ov_rentalCar')||70; var rd=nights+1;
+      var rnote=(_rentalCo||'Rental')+(_rentalLoc?' - '+_rentalLoc:'');
+      rows=[{l:'Rental car ('+rd+' days)',n:rnote,c:Math.round(rb*rd)},{l:'Zero excess insurance',n:'~$32/day',c:Math.round(32*rd)},{l:'Fuel ('+km2+'km @ $'+fuel.toFixed(2)+'/L)',n:eco+'L/100km',c:fuelC},{l:'Road tolls (return)',n:'Est.',c:tolls}];
+    }
+    if(!dayTrip) rows.push({l:'Accommodation ('+nights+' night'+(nights>1?'s':'')+')',n:gv('accomName')||'Best under $250/night',c:accom*nights,sh:1});
+    if(!dayTrip) rows.push({l:'Meals ('+days+' x $'+meals+')',n:'$'+meals+'/day',c:meals*days,sh:1});
+    if(!dayTrip) rows.push({l:'Daily allowance ('+days+' x $'+allow+')',n:'As specified',c:allow*days,sh:1});
+    perfs.forEach(function(p){var d2=loadS();var lbl=p.label+(p.who==='p2'&&d2.p2perfName?' ['+d2.p2perfName+']':'');rows.push({l:lbl,n:p.desc,c:p.fee,pf:1,p2:p.who==='p2'});});
+    if(discAmt>0) rows.push({l:'Multi-show discount ('+discPct+'%)',n:'On performance fees',c:-discAmt,dc:1});
+    var sub=rows.reduce(function(s,r){return s+r.c;},0);
+    var buf=Math.min(Math.round(sub*bufPct/100),300);
+    rows.push({l:'Contingency buffer ('+bufPct+'%, max $300)',n:'Incidentals',c:buf,bf:1});
+    var cpFee=0;
+    if(document.getElementById('chkCP').checked){
+      var netNeeded=sub+buf;
+      var gross=Math.ceil(netNeeded/0.88);
+      cpFee=gross-netNeeded;
+      rows.push({l:'CrowdPleaser platform fee (12%)',n:'Grossed up so you net $'+netNeeded.toLocaleString(),c:cpFee,cp:1});
+    }
+    res[m]={rows:rows,total:sub+buf+cpFee,buf:buf,cpFee:cpFee};
+  });
+  calcResults=res;
+  renderTable(res);
+  document.getElementById('resultsCard').style.display='block';
+  var dtNote=document.getElementById('dayTripNote');
+  if(dtNote) dtNote.style.display=dayTrip?'block':'none';
+  document.getElementById('resultsCard').scrollIntoView({behavior:'smooth',block:'nearest'});
+  document.getElementById('calcMsg').textContent='OK Calculation complete.';
+  var cpNote=document.getElementById('cpFeeNote');
+  var anyMode=Object.keys(res)[0];
+  if(document.getElementById('chkCP').checked&&anyMode){
+    var cf=res[anyMode].cpFee||0;
+    cpNote.textContent='CP fee ~$'+cf+' added per mode';
+    cpNote.style.display='inline';
+  } else { cpNote.style.display='none'; }
+  renderQuoteTab();
+});
+function renderTable(res){
+  var modes=Object.keys(res); if(!modes.length) return;
+  var tots=modes.map(function(m){return res[m].total;}); var minT=Math.min.apply(null,tots);
+  var h='<thead><tr><th class="lc">Item</th>';
+  modes.forEach(function(m){var mm=MMETA[m];h+='<th style="color:'+mm.c+'">'+mm.e+' '+mm.n+'<div style="font-size:9px;color:#445;margin-top:2px;">'+mm.b+'</div></th>';});
+  h+='</tr></thead><tbody>';
+  var secs=[{t:'Transport & Transfers',f:function(r){return !r.sh&&!r.pf&&!r.bf&&!r.dc;}},{t:'Accommodation, Meals & Allowance',f:function(r){return !!r.sh;}},{t:'Performance Fees & Platform',f:function(r){return !!r.pf||!!r.dc||!!r.cp;}},{t:'Buffer',f:function(r){return !!r.bf;}}];
+  secs.forEach(function(sec){
+    var lbls=[],seen={};
+    modes.forEach(function(m){res[m].rows.filter(sec.f).forEach(function(r){if(!seen[r.l]){seen[r.l]=1;lbls.push(r);}});});
+    if(!lbls.length) return;
+    h+='<tr class="sr"><td colspan="'+(modes.length+1)+'">'+sec.t+'</td></tr>';
+    lbls.forEach(function(lr){
+      h+='<tr><td class="lc">'+lr.l+'</td>';
+      modes.forEach(function(m){
+        var found=null; res[m].rows.forEach(function(r){if(r.l===lr.l)found=r;});
+        if(found){var neg=found.c<0;h+='<td class="cc" style="color:'+(neg?'#7ac':'')+'">$'+(neg?'-'+Math.abs(found.c):found.c)+'<div class="nsm">'+found.n+'</div></td>';}
+        else h+='<td class="nc">-</td>';
+      });
+      h+='</tr>';
+    });
+  });
+  h+='<tr class="tr"><td class="lc" style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);">ESTIMATED TOTAL</td>';
+  modes.forEach(function(m){var isMin=res[m].total===minT;var mm=MMETA[m];h+='<td class="cc" style="font-size:20px;color:'+(isMin?'#7acc7a':mm.c)+'">$'+res[m].total.toLocaleString()+(isMin?'<div style="font-size:9px;color:#7ac;letter-spacing:1px;">OK Lowest</div>':'')+'</td>';});
+  h+='</tr></tbody>';
+  document.getElementById('resultsTable').innerHTML=h;
+}
+
+// --------------------------- QUOTE TAB
+function renderQuoteTab(){
+  if(!calcResults) return;
+  var modes=Object.keys(calcResults); var h='';
+  modes.forEach(function(m){var mm=MMETA[m];var r=calcResults[m];
+    h+='<label class="qmrow" for="qr_'+m+'"><input type="radio" name="qmode" id="qr_'+m+'" value="'+m+'"><span class="qmlabel">'+mm.e+' <b>'+mm.n+'</b> - '+mm.b+'</span><span class="qmcost">$'+r.total.toLocaleString()+'</span></label>';
+  });
+  document.getElementById('quoteModes').innerHTML=h;
+  document.querySelectorAll('input[name="qmode"]').forEach(function(r){r.addEventListener('change',updQSummary);});
+  updQSummary();
+}
+function updQSummary(){
+  var sel=document.querySelector('input[name="qmode"]:checked');
+  var el=document.getElementById('quoteSummary');
+  if(!sel||!calcResults){el.innerHTML='<div style="color:var(--muted);font-style:italic;">Select a travel mode above.</div>';return;}
+  var m=sel.value,r=calcResults[m],mm=MMETA[m]; var dep=Math.round(r.total/2); var d=loadS();
+  var perfs=getPerfs(); var discPct=gn('discountPct');
+  var pSub=perfs.reduce(function(s,p){return s+p.fee;},0);
+  var dAmt=perfs.length>1&&discPct>0?Math.round(pSub*discPct/100):0;
+  var cpLine=r.cpFee?'<div class="tip" style="margin-top:6px;color:#b09acc;">Incl. $'+r.cpFee+' CP platform fee</div>':'';
+  el.innerHTML='<div class="g3" style="margin-bottom:14px;">'+
+    '<div class="smbox"><div class="smlabel">Total</div><div class="smtotal">$'+r.total.toLocaleString()+'</div><div class="tip">incl. buffer &amp; GST</div>'+cpLine+'</div>'+
+    '<div class="smbox" style="background:rgba(90,138,58,.08);border-color:rgba(90,138,58,.3);"><div class="smlabel" style="color:#8a6;">Deposit (50%)</div><div class="smtotal" style="color:#8acc8a;">$'+dep.toLocaleString()+'</div><div class="tip">On booking confirmation</div></div>'+
+    '<div class="smbox" style="background:rgba(91,143,196,.08);border-color:rgba(91,143,196,.3);"><div class="smlabel" style="color:#8af;">Balance (50%)</div><div class="smtotal" style="color:#8ab0d4;">$'+dep.toLocaleString()+'</div><div class="tip">7 days prior to event</div></div>'+
+    '</div><div style="font-size:12px;color:var(--muted);">Travel: <b style="color:var(--text)">'+mm.e+' '+mm.n+'</b> &nbsp;.&nbsp; Performances: <b style="color:var(--text)">$'+(pSub-dAmt).toLocaleString()+'</b>'+(dAmt>0?' (incl. $'+dAmt+' discount)':'')+' &nbsp;.&nbsp; Buffer: <b style="color:var(--text)">$'+r.buf.toLocaleString()+'</b></div>';
+}
+
+// --------------------------- PDF
+function generatePDF(mode){
+  var isAnon=(mode==='cp');
+  var isFull=(mode==='full');
+  var isInternal=(mode==='internal');
+  var sel=document.querySelector('input[name="qmode"]:checked');
+  if(!sel||!calcResults){alert('Please run the calculator and select a travel mode first.');return;}
+  var m=sel.value,r=calcResults[m],mm=MMETA[m];
+  var perfs=getPerfs(); var discPct=gn('discountPct'); var nights=gn('numNights')||1; var days=gn('tripDays')||2;
+  var d=loadS(); var bufPct=parseFloat(d.buf)||15;
+  var msgEl=document.getElementById('pdfMsg'); msgEl.textContent='Generating...'; msgEl.style.color='var(--muted)';
+  try{
+    var jsPDF=window.jspdf.jsPDF; var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    var W=210,H=297,mg=18,cw=W-mg*2,y=12;
+    var gold=[200,168,75],blk=[13,13,13],wht=[255,255,255],dgray=[26,26,26],lgray=[136,136,136],mgray=[240,240,240],bblu=[10,10,10];
+    var now=new Date();
+    var issueDate=now.toLocaleDateString('en-AU',{day:'2-digit',month:'long',year:'numeric'});
+    var validDate=new Date(now.getTime()+7*86400000).toLocaleDateString('en-AU',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+    var depositDue=new Date(now.getTime()+7*86400000).toLocaleDateString('en-AU',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+    // Calculate balance due: 7 days before event, adjusted to prior business day
+    function priorBizDay(dt){
+      var d=new Date(dt.getTime()-7*86400000);
+      if(d.getDay()===0) d=new Date(d.getTime()-2*86400000); // Sun -> Fri
+      else if(d.getDay()===6) d=new Date(d.getTime()-1*86400000); // Sat -> Fri
+      return d;
+    }
+    var evIso=gv('q_date'); // yyyy-mm-dd
+    var balDueStr='7 days prior to the event';
+    if(evIso&&evIso.indexOf('-')>=0){
+      var ep=evIso.split('-');
+      var evDt=new Date(parseInt(ep[0]),parseInt(ep[1])-1,parseInt(ep[2]));
+      var balDt=priorBizDay(evDt);
+      balDueStr=balDt.toLocaleDateString('en-AU',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+    }
+    var qRef=gv('q_ref')||'SP-'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
+    var bizName=d.bizName||'Sean Piper Magic'; var bizAbn=d.abn||'42 665 798 220';
+    var bizEmail=d.email||'piper.sean@gmail.com'; var bizPhone=d.phone||'';
+    var perfName=d.perfName||'Sean Piper'; var perfTitle=d.perfTitle||'Magician & Mentalist';
+    var hasP2=perfs.some(function(p){return p.who==='p2';})&&d.p2on&&d.p2perfName;
+    // Header
+    doc.setFillColor.apply(doc,bblu);doc.rect(0,0,W,40,'F');
+    doc.setFillColor.apply(doc,gold);doc.rect(0,38,W,1.5,'F');
+    try{doc.addImage('data:image/jpeg;base64,'+LOGO_B64,'JPEG',mg,6,52,26);}catch(ex){}
+    if(hasP2&&LOGO2_B64){try{doc.addImage('data:image/jpeg;base64,'+LOGO2_B64,'JPEG',mg+56,10,40,20);}catch(ex){}}
+    doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor.apply(doc,gold);doc.text('ENTERTAINMENT QUOTE',W-mg,14,{align:'right'});
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor.apply(doc,lgray);
+    doc.text('Quote Ref: '+qRef,W-mg,20,{align:'right'});doc.text('Issued: '+issueDate,W-mg,25,{align:'right'});
+    doc.setTextColor.apply(doc,gold);doc.text('Valid until: '+validDate,W-mg,30,{align:'right'});
+    y=46;
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor.apply(doc,blk);doc.text(bizName,mg,y);
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(80,80,80);
+    y+=5;doc.text('ABN: '+bizAbn,mg,y);
+    if(!isAnon){y+=4.5;if(bizPhone){doc.text(bizPhone,mg,y);y+=4.5;}doc.text(bizEmail,mg,y);}
+    else{y+=4.5;doc.setFont('helvetica','italic');doc.setTextColor(160,140,100);doc.text('via CrowdPleaser',mg,y);}
+    var rx=mg+cw/2+4,ry=46;
+    var cn=gv('q_name'),cc=gv('q_company'),ce=gv('q_email'),cp=gv('q_phone');
+    if(isAnon){
+      doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(80,80,80);doc.text('Prepared for:',rx,ry);ry+=5;
+      doc.setFont('helvetica','italic');doc.setTextColor(160,140,100);doc.text('Contact details withheld',rx,ry);ry+=4.5;
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(130,110,80);doc.text('(via CrowdPleaser platform)',rx,ry);
+    } else {
+      doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(80,80,80);doc.text('Prepared for:',rx,ry);ry+=5;
+      doc.setTextColor.apply(doc,blk);if(cn){doc.text(cn,rx,ry);ry+=4.5;}
+      doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);
+      if(cc){doc.text(cc,rx,ry);ry+=4.5;}if(ce){doc.text(ce,rx,ry);ry+=4.5;}if(cp){doc.text(cp,rx,ry);}
+    }
+    y=Math.max(y,ry)+7;
+    doc.setDrawColor.apply(doc,gold);doc.setLineWidth(0.3);doc.line(mg,y,W-mg,y);y+=6;
+    // Event details
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor.apply(doc,lgray);doc.text('EVENT DETAILS',mg,y);y+=5;
+    var evRows=[];var en=gv('q_event'),ed=getDateDisplay(gv('q_date')),ev=gv('q_venue'),dest2=gv('destination'),guests=gv('numGuests'),bi=gv('q_bumpin'),st2=gv('q_show');
+    if(en)evRows.push(['Event:',en]);if(ed)evRows.push(['Date:',ed]);if(ev)evRows.push(['Venue:',ev]);
+    if(dest2)evRows.push(['Location:',dest2]);if(guests)evRows.push(['Expected Guests:',guests]);
+    if(bi)evRows.push(['Bump In:',bi]);if(st2)evRows.push(['Performance Time:',st2]);
+    evRows.forEach(function(row,i){if(i%2===0){doc.setFillColor.apply(doc,mgray);doc.rect(mg,y-3.5,cw,7,'F');}doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(80,80,80);doc.text(row[0],mg+2,y);doc.setFont('helvetica','normal');doc.setTextColor.apply(doc,blk);doc.text(String(row[1]),mg+52,y);y+=7;});
+    y+=4;if(y>185){doc.addPage();y=20;}doc.setDrawColor(220,220,220);doc.setLineWidth(0.3);doc.line(mg,y,W-mg,y);y+=6;
+    // Inclusions
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor.apply(doc,lgray);doc.text('PERFORMANCE & INCLUSIONS',mg,y);y+=5;
+    var performers=perfName+(hasP2&&d.p2perfName?' & '+d.p2perfName:'');
+    var intro='Thank you for considering '+performers+' for your upcoming event. The following quote outlines everything included to make your event truly unforgettable.';
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(50,50,50);var iL=doc.splitTextToSize(intro,cw);doc.text(iL,mg,y);y+=iL.length*4.5+3;
+    var incs=['All travel to and from the event venue (door-to-door from Rochedale, QLD)','Full public liability insurance'];
+    perfs.forEach(function(p){if(p.desc)incs.push(p.desc);});
+    incs.forEach(function(inc){doc.setFontSize(8.5);doc.setTextColor(50,50,50);doc.text('- '+inc,mg+2,y);y+=5;});
+    if(parseInt(guests)>50){y+=2;doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor.apply(doc,lgray);var rn='Note: For events of 50+ guests, the client is responsible for providing suitable sound and lighting equipment as outlined in the technical rider.';var rnL=doc.splitTextToSize(rn,cw);doc.text(rnL,mg,y);y+=rnL.length*4.5;}
+    y+=4;if(y>210){doc.addPage();y=20;}
+    doc.setDrawColor(220,220,220);doc.setLineWidth(0.3);doc.line(mg,y,W-mg,y);y+=6;
+    // Investment
+    var grand=r.total;
+    if(!isAnon){
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor.apply(doc,lgray);doc.text('QUOTE SUMMARY',mg,y);y+=5;
+    var irows=[]; var pSub2=0;
+    perfs.forEach(function(p){var lbl=p.label+(p.who==='p2'&&d.p2perfName?' ['+d.p2perfName+']':'');irows.push([lbl,p.fee]);pSub2+=p.fee;});
+    var dAmt2=0;if(perfs.length>1&&discPct>0){dAmt2=Math.round(pSub2*discPct/100);irows.push(['Multi-Performance Discount ('+discPct+'%)',-dAmt2]);}
+    irows.push(['Travel, Accommodation & Expenses','Included']);
+    grand=r.total;
+    irows.forEach(function(row,i){
+      if(i%2===0){doc.setFillColor.apply(doc,mgray);doc.rect(mg,y-3.5,cw,7,'F');}
+      doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(50,50,50);doc.text(row[0],mg+3,y);
+      if(typeof row[1]==='number'){var neg=row[1]<0;doc.setFont('helvetica','bold');doc.setTextColor(neg?80:50,neg?140:50,neg?80:50);doc.text((neg?'-$':'$')+Math.abs(row[1]).toLocaleString('en-AU',{minimumFractionDigits:2}),W-mg-2,y,{align:'right'});}
+      else{doc.setFont('helvetica','italic');doc.setTextColor(120,120,120);doc.text(String(row[1]),W-mg-2,y,{align:'right'});}
+      y+=7;
+    });
+    doc.setFillColor.apply(doc,dgray);doc.rect(mg,y-1,cw,13,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor.apply(doc,wht);doc.text('TOTAL (GST Inclusive)',mg+4,y+5.5);
+    doc.setTextColor.apply(doc,gold);doc.setFontSize(13);doc.text('$'+grand.toLocaleString('en-AU',{minimumFractionDigits:2}),W-mg-3,y+6.5,{align:'right'});
+    var gst=Math.round(grand/11);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(180,150,80);doc.text('Includes GST of $'+gst.toLocaleString('en-AU',{minimumFractionDigits:2}),W-mg-3,y+11,{align:'right'});
+    y+=18;if(y>220){doc.addPage();y=20;}
+    } else {
+      // CP: total bar only
+      doc.setFillColor.apply(doc,dgray);doc.rect(mg,y-1,cw,13,'F');
+      doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor.apply(doc,wht);doc.text('TOTAL QUOTE (GST Inclusive)',mg+4,y+5.5);
+      doc.setTextColor.apply(doc,gold);doc.setFontSize(13);doc.text('$'+grand.toLocaleString('en-AU',{minimumFractionDigits:2}),W-mg-3,y+6.5,{align:'right'});
+      var gstCP=Math.round(grand/11);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(180,150,80);doc.text('Includes GST of $'+gstCP.toLocaleString('en-AU',{minimumFractionDigits:2}),W-mg-3,y+11,{align:'right'});
+      y+=18;
+    }
+    doc.setDrawColor(220,220,220);doc.setLineWidth(0.3);doc.line(mg,y,W-mg,y);y+=6;
+    // Payment
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor.apply(doc,lgray);doc.text('BOOKING & PAYMENT',mg,y);y+=5;
+    var dep2=grand/2; var evDateStr=getDateDisplay(gv('q_date'));
+    var pTxt=isAnon
+      ? 'To confirm this booking, please pay your deposit via CrowdPleaser by '+depositDue+'. The outstanding balance will be due by '+balDueStr+(evDateStr?' (7 days prior to '+evDateStr+')':'')+'. Cancellations within 14 days of the event date forfeit any payment made. Your deposit is processed through CrowdPleaser; the outstanding balance is payable directly to Sean Piper.'
+      : 'To secure your date, a non-refundable booking deposit of $'+dep2.toLocaleString('en-AU',{minimumFractionDigits:2})+' (50%) is due by '+depositDue+'. The remaining balance of $'+dep2.toLocaleString('en-AU',{minimumFractionDigits:2})+' is due no later than 7 days prior to the event'+(evDateStr?' ('+evDateStr+')':'')+'. Cancellations within 14 days of the event date forfeit the deposit in full.';
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(50,50,50);var pL=doc.splitTextToSize(pTxt,cw);doc.text(pL,mg,y);y+=pL.length*4.5+6;
+    var so='I\'m genuinely excited about the possibility of being part of your event and will bring my full energy, professionalism, and passion to every moment. Please don\'t hesitate to reach out with any questions.';
+    var soL=doc.splitTextToSize(so,cw);doc.text(soL,mg,y);y+=soL.length*4.5+7;
+    if(y>250){doc.addPage();y=20;}
+    doc.text('Warm regards,',mg,y);y+=6;
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor.apply(doc,blk);doc.text(perfName+(hasP2&&d.p2perfName?' & '+d.p2perfName:''),mg,y);y+=5;
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor.apply(doc,lgray);doc.text(perfTitle,mg,y);
+    if(!isAnon){y+=4.5;if(bizPhone){doc.text(bizPhone,mg,y);y+=4.5;}doc.text(bizEmail,mg,y);}
+    y+=8;
+    // Rider page
+    if(!isAnon){ doc.addPage();y=20;
+    doc.setFillColor.apply(doc,bblu);doc.rect(0,0,W,22,'F');doc.setFillColor.apply(doc,gold);doc.rect(0,20,W,1,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor.apply(doc,gold);doc.text('TECHNICAL RIDER',mg,13);
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(180,180,180);doc.text(bizName+'  |  ABN: '+bizAbn,W-mg,13,{align:'right'});
+    y=30;
+    var ri2="Sean\'s show is compact and professional - he performs primarily from a single performance case with no large set pieces or complex rigging. The following requirements are straightforward and ensure a safe, polished experience for your guests.";
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(60,60,60);var rL=doc.splitTextToSize(ri2,cw);doc.text(rL,mg,y);y+=rL.length*4.5+6;
+    var rsecs=[
+      {title:'1. Green Room / Preparation Space',items:['A private, secure space must be provided for setup, preparation, and costume changes prior to and during the event.','A standard private office, meeting room, or dedicated green room is ideal. Public bathrooms or shared spaces are not acceptable.','The space should be available from bump-in time and remain accessible throughout the event.','A mirror, table or flat surface, and at least one chair should be available in the space.']},
+      {title:'2. Sound & PA System',items:['For stage shows with audiences over 100 people, a professional-grade PA/sound system must be provided by the booker at their cost.','A headset microphone (wireless) is strongly preferred. If unavailable, a wireless handheld microphone is acceptable, with a corded microphone and stand available as a standby backup.','A microphone stand must be provided when using any handheld microphone.','The sound system must accept standard 3.5mm auxiliary or RCA input for playback of audio from a personal device.','All audio equipment must be tested and confirmed fully operational prior to guest arrival.']},
+      {title:'3. Stage & Performance Area',items:['For stage shows with audiences over 60 people, a stage riser must be provided with minimum dimensions of 3m wide x 4m deep and a minimum height of 60cm.','The stage must be clear, stable, and free of trip hazards. Non-slip surface preferred.','Two standard chairs (without arms) must be placed on or immediately adjacent to the stage.','For theatre-style or seated audience formats, a minimum of 15 minutes must be allocated for a technical walkthrough prior to guests being admitted to the room.']},
+      {title:'4. Lighting',items:['A basic front wash covering the full performance area is required for stage shows.','Blackout capability is appreciated but not essential.','House lighting should be controllable (dim/bright) from a position accessible during the performance.','For outdoor or marquee events, please discuss lighting requirements in advance.']},
+      {title:'5. General Requirements',items:["Sean carries all props and materials in a single professional case - no additional storage, loading dock, or freight required.",'Clear, unobstructed access to the performance area is required from bump-in time.','A venue or event management contact should be available during bump-in to assist with logistics.','All technical elements should be fully tested and stable prior to arrival where possible.']}
+    ];
+    rsecs.forEach(function(sec){
+      if(y>H-40){doc.addPage();y=20;}
+      doc.setFillColor(230,230,230);doc.rect(mg,y-4,cw,8,'F');doc.setFillColor.apply(doc,gold);doc.rect(mg,y-4,2,8,'F');
+      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(30,30,30);doc.text(sec.title,mg+5,y+0.5);y+=8;
+      sec.items.forEach(function(item){
+        if(y>H-25){doc.addPage();y=20;}
+        doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(50,50,50);
+        var il=doc.splitTextToSize(item,cw-8);doc.text('-',mg+2,y);doc.text(il,mg+7,y);y+=il.length*4.5+1.5;
+      });
+      y+=4;
+    });
+    if(y>H-35){doc.addPage();y=20;}
+    doc.setDrawColor(220,220,220);doc.setLineWidth(0.3);doc.line(mg,y,W-mg,y);y+=5;
+    doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(120,120,120);
+    var rNote='Sean is flexible and happy to work within the constraints of your venue wherever possible. If you have any questions about these requirements, please reach out prior to the event.';
+    var rnL=doc.splitTextToSize(rNote,cw);doc.text(rnL,mg,y);y+=rnL.length*4.5+5;
+    doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor.apply(doc,blk);doc.text(perfName,mg,y);y+=4.5;
+    doc.setFont('helvetica','normal');doc.setTextColor.apply(doc,lgray);
+    doc.text(isAnon ? perfTitle : perfTitle+'  |  '+bizEmail+(bizPhone?'  |  '+bizPhone:''),mg,y);
+    } // end if(!isAnon) rider page
+
+    // Footers
+    var tp=doc.getNumberOfPages();
+    for(var pg=1;pg<=tp;pg++){
+      doc.setPage(pg);doc.setDrawColor.apply(doc,gold);doc.setLineWidth(0.3);doc.line(mg,H-14,W-mg,H-14);
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor.apply(doc,gold);
+      doc.text(bizName+'  |  ABN: '+bizAbn+'  |  '+(pg===tp&&!isAnon?'Technical Rider':'Quote valid until '+validDate),W/2,H-9,{align:'center'});
+      doc.setTextColor.apply(doc,lgray);doc.text('Confidential - prepared exclusively for the recipient named above. Page '+pg+' of '+tp,W/2,H-5,{align:'center'});
+    }
+    doc.save('Sean_Piper_Quote_'+qRef+(isAnon?'_CrowdPleaser':'')+'.pdf');
+    msgEl.textContent='OK Saved: Sean_Piper_Quote_'+qRef+(isAnon?'_CrowdPleaser':'')+'.pdf'; msgEl.style.color='#7acc7a';
+  }catch(ex){console.error(ex);msgEl.textContent=' PDF error: '+ex.message;msgEl.style.color='#e08080';}
+}
+document.getElementById('btnPDF').addEventListener('click',function(){generatePDF('full');});
+document.getElementById('btnPDFCP').addEventListener('click',function(){generatePDF('cp');});
+document.getElementById('btnPDFInternal').addEventListener('click',function(){generateInternalSheet();});
+
+function generateInternalSheet(){
+  var sel=document.querySelector('input[name="qmode"]:checked');
+  if(!sel||!calcResults){alert('Please run the calculator and select a travel mode first.');return;}
+  var msgEl=document.getElementById('pdfMsg');
+  msgEl.textContent='Generating...';msgEl.style.color='var(--muted)';
+  try{
+    var jsPDF=window.jspdf.jsPDF;
+    var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    var W=210,H=297,mg=13,cw=W-mg*2,y=13;
+    var gold=[200,168,75],lgray=[120,120,120],mgray=[245,245,245],dgray=[40,40,40],wht=[255,255,255];
+    var now=new Date();var d=loadS();
+    var m=sel.value,r=calcResults[m],mm=MMETA[m];
+    var perfs=getPerfs();var discPct=gn('discountPct');
+    var nights=gn('numNights')||1;var days=gn('tripDays')||2;var dist=gn('distKm');
+    var qRef=gv('q_ref')||'SP-'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
+    var issueDate=now.toLocaleDateString('en-AU',{day:'2-digit',month:'long',year:'numeric'});
+    var col=(cw-6)/2;
+    doc.setFillColor.apply(doc,dgray);doc.rect(0,0,W,14,'F');
+    doc.setFillColor.apply(doc,gold);doc.rect(0,13,W,1,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor.apply(doc,gold);
+    doc.text('INTERNAL BOOKING SHEET',mg,9.5);
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(180,180,180);
+    doc.text('Ref: '+qRef+'  '+issueDate+'  CONFIDENTIAL',W-mg,9.5,{align:'right'});
+    y=22;
+    var lx=mg,rx=mg+col+6,cy=y;
+    function sh2(x,w,t){doc.setFillColor(225,225,225);doc.rect(x,y-3,w,7,'F');doc.setFillColor.apply(doc,gold);doc.rect(x,y-3,2,7,'F');doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(30,30,30);doc.text(t,x+3,y+1);y+=8;}
+    function fr(x,w,lbl,val,shade){if(shade){doc.setFillColor.apply(doc,mgray);doc.rect(x,y-3,w,6,'F');}doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(100,100,100);doc.text(lbl,x+2,y);doc.setFont('helvetica','bold');doc.setTextColor(20,20,20);var v=String(val);if(v.length>20)v=v.substring(0,19)+'..';doc.text(v,x+26,y);y+=6;}
+    sh2(lx,col,'EVENT & CLIENT');
+    fr(lx,col,'Event',gv('q_event')||'-',false);fr(lx,col,'Date',getDateDisplay(gv('q_date'))||'-',true);
+    fr(lx,col,'Venue',gv('q_venue')||'-',false);fr(lx,col,'Client',gv('q_name')||'-',true);
+    fr(lx,col,'Company',gv('q_company')||'-',false);fr(lx,col,'Email',gv('q_email')||'-',true);
+    fr(lx,col,'Phone',gv('q_phone')||'-',false);fr(lx,col,'Guests',gv('numGuests')||'-',true);
+    fr(lx,col,'Bump In',gv('q_bumpin')||'-',false);fr(lx,col,'Show Time',gv('q_show')||'-',true);
+    var ly=y;y=cy;
+    sh2(rx,col,'TRAVEL');
+    fr(rx,col,'From',gv('homeLocation')||'Rochedale QLD',false);fr(rx,col,'To',gv('destination')||'-',true);
+    fr(rx,col,'Distance',dist?dist+' km':'-',false);fr(rx,col,'Drive Time',gv('driveTime')||'-',true);
+    fr(rx,col,'Mode',mm.e+' '+mm.n,false);fr(rx,col,'Nights',nights,true);fr(rx,col,'Trip Days',days,false);
+    fr(rx,col,'Accom',gv('accomName')||'-',true);fr(rx,col,'$/night','$'+(gn('accomPerNight')||0),false);
+    fr(rx,col,'Fuel','$'+gn('fuelPrice').toFixed(2)+'/L',true);
+    y=Math.max(ly,y)+3;
+    doc.setFillColor(225,225,225);doc.rect(mg,y-3,cw,7,'F');doc.setFillColor.apply(doc,gold);doc.rect(mg,y-3,2,7,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(30,30,30);doc.text('PERFORMANCES',mg+3,y+1);y+=8;
+    var pSub=0;
+    perfs.forEach(function(p,i){if(i%2===0){doc.setFillColor.apply(doc,mgray);doc.rect(mg,y-3,cw,6,'F');}doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(80,80,80);doc.text(p.label+(p.who==='p2'&&d.p2perfName?' ['+d.p2perfName+']':''),mg+2,y);doc.setFont('helvetica','bold');doc.setTextColor(20,20,20);doc.text('$'+p.fee.toFixed(2),W-mg-2,y,{align:'right'});pSub+=p.fee;y+=6;});
+    if(!perfs.length){doc.setFont('helvetica','italic');doc.setFontSize(7);doc.setTextColor(150,150,150);doc.text('No performances added',mg+2,y);y+=6;}
+    if(perfs.length>1&&discPct>0){var dA=Math.round(pSub*discPct/100);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(80,80,80);doc.text('Multi-show discount ('+discPct+'%)',mg+2,y);doc.setFont('helvetica','bold');doc.setTextColor(80,140,80);doc.text('-$'+dA.toFixed(2),W-mg-2,y,{align:'right'});pSub-=dA;y+=6;}
+    y+=3;
+    doc.setFillColor(225,225,225);doc.rect(mg,y-3,cw,7,'F');doc.setFillColor.apply(doc,gold);doc.rect(mg,y-3,2,7,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(30,30,30);doc.text('COST BREAKDOWN - '+mm.n.toUpperCase(),mg+3,y+1);y+=8;
+    r.rows.forEach(function(rw,i){if(i%2===0){doc.setFillColor.apply(doc,mgray);doc.rect(mg,y-3,cw,6,'F');}doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(80,80,80);doc.text(rw.l,mg+2,y);var neg=rw.c<0;doc.setFont('helvetica','bold');doc.setTextColor(neg?80:20,neg?140:20,neg?80:20);doc.text((neg?'-$':'$')+Math.abs(rw.c).toFixed(2),W-mg-2,y,{align:'right'});y+=6;});
+    y+=2;
+    doc.setFillColor.apply(doc,dgray);doc.rect(mg,y-1,cw,11,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor.apply(doc,wht);doc.text('TOTAL (incl. GST)',mg+3,y+5.5);
+    doc.setTextColor.apply(doc,gold);doc.setFontSize(12);doc.text('$'+r.total.toLocaleString('en-AU',{minimumFractionDigits:2}),W-mg-3,y+6.5,{align:'right'});
+    y+=14;
+    var dep=r.total/2;var gst=Math.round(r.total/11);
+    doc.setFillColor.apply(doc,mgray);doc.rect(mg,y-3,cw,7,'F');
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(80,80,80);
+    doc.text('50% Deposit: $'+dep.toLocaleString('en-AU',{minimumFractionDigits:2}),mg+3,y+1);
+    doc.text('Balance: $'+dep.toLocaleString('en-AU',{minimumFractionDigits:2}),mg+62,y+1);
+    doc.text('GST: $'+gst.toLocaleString('en-AU',{minimumFractionDigits:2}),mg+124,y+1);
+    y+=10;
+    doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(160,160,160);
+    doc.text('Buffer '+(d.buf||15)+'% max $300  |  Meals $'+(d.meals||60)+'/day  |  Allowance $'+(d.allow||25)+'/day  |  Fuel '+(d.eco||10)+'L/100km  |  ATO $'+(d.wear||0.10)+'/km  |  Parking $'+(d.park||20)+'/day',mg,y);
+    doc.setDrawColor.apply(doc,gold);doc.setLineWidth(0.3);doc.line(mg,H-11,W-mg,H-11);
+    doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor.apply(doc,gold);
+    doc.text('INTERNAL USE ONLY  |  '+(d.bizName||'Sean Piper Magic')+'  |  ABN: '+(d.abn||'42 665 798 220'),W/2,H-7,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setTextColor.apply(doc,lgray);doc.text('Generated '+issueDate+'  |  Quote Ref: '+qRef,W/2,H-3.5,{align:'center'});
+    doc.save('INTERNAL_'+qRef+'_'+mm.n.replace(' ','_')+'.pdf');
+    msgEl.textContent='OK Saved: INTERNAL_'+qRef+'_'+mm.n.replace(' ','_')+'.pdf';
+    msgEl.style.color='#7acc7a';
+  }catch(ex){
+    console.error(ex);
+    document.getElementById('pdfMsg').textContent='Error: '+ex.message;
+    document.getElementById('pdfMsg').style.color='#e08080';
+  }
+}
+
+
+// --------------------------- CLEAR
+document.getElementById('chkCP').addEventListener('change', function(){
+  // Clear results so user re-calculates with new fee setting
+  document.getElementById('resultsCard').style.display='none';
+  document.getElementById('calcMsg').textContent='CP setting changed - recalculate to update.';
+  document.getElementById('cpFeeNote').style.display='none';
+  calcResults=null;
+});
+document.getElementById('btnClear').addEventListener('click', function(){
+  ['destination','distKm','driveTime','accomName','accomPerNight','accomDist','ov_flight','ov_train','ov_bus','ov_selfDrive','ov_rentalCar','calcEventDate','q_date'].forEach(function(id){sv(id,'');});
+  sv('fuelPrice','2.10');
+  document.getElementById('accomNote').textContent='Best option under $250/night within 5km.';
+  document.getElementById('fuelTip').textContent='Use Look Up for a forecast, or adjust manually.';
+  ['distBadge','fuelBadge','accomBadge'].forEach(function(id){document.getElementById(id).style.display='none';});
+  document.getElementById('lookupStatus').style.display='none';
+  document.getElementById('rentalInfo').style.display='none';
+  document.getElementById('perfList').innerHTML=''; perfIds=[]; perfCount=0;
+  document.getElementById('discountRow').style.display='none';
+  document.getElementById('resultsCard').style.display='none';
+  document.getElementById('calcMsg').textContent=''; calcResults=null;
+  _airport=''; _rentalCo=''; _rentalLoc='';
+});
+
+// --------------------------- INIT
+loadDefaults();
+// native date inputs - no init needed
+</script>
+</body>
+</html>
