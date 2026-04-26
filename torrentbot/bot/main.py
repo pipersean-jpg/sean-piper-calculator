@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import sys
 from pathlib import Path
@@ -41,6 +42,8 @@ def main():
     app = Application.builder().token(config.telegram_token).build()
     app.add_handler(CommandHandler("ping", ping_handler))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
+
+    asyncio.set_event_loop(asyncio.new_event_loop())
 
     logger.info(
         "TorrentBot started. Authorised chats: %s", config.allowed_chat_ids
