@@ -1,0 +1,30 @@
+# Secrets — NEVER commit these
+.env
+.env.local
+*.env
+
+# Real config (only the .example version is tracked)
+config.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Runtime
+logs/
+*.log
+*.sqlite
+*.db
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
