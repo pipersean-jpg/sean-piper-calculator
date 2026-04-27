@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.torrentbot.bot</string>
+
+    <!-- Filled in by install.sh -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>REPLACE_PYTHON</string>
+        <string>-m</string>
+        <string>bot.main</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>REPLACE_DIR</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- Restart on crash; only while network is up -->
+    <key>KeepAlive</key>
+    <dict>
+        <key>Crashed</key>
+        <true/>
+        <key>NetworkState</key>
+        <true/>
+    </dict>
+
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <key>StandardOutPath</key>
+    <string>REPLACE_DIR/logs/bot.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>REPLACE_DIR/logs/bot.error.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+</dict>
+</plist>
