@@ -32,7 +32,7 @@ class PlexConfig:
 class SonarrConfig:
     url: str = "http://localhost:8989"
     api_key: str = ""
-    quality_profile_id: int = 1
+    quality_profile_id: int = 4
     root_folder: str = "/Volumes/Mac Backup/Shared Videos/TV"
 
 
@@ -40,8 +40,14 @@ class SonarrConfig:
 class RadarrConfig:
     url: str = "http://localhost:7878"
     api_key: str = ""
-    quality_profile_id: int = 1
+    quality_profile_id: int = 4
     root_folder: str = "/Volumes/Mac Backup/Shared Videos/Movies"
+
+
+@dataclass
+class ProwlarrConfig:
+    url: str = "http://localhost:9696"
+    api_key: str = ""
 
 
 @dataclass
@@ -59,6 +65,12 @@ class QualityConfig:
 
 
 @dataclass
+class WebhookConfig:
+    port: int = 8765
+    host: str = "0.0.0.0"
+
+
+@dataclass
 class Config:
     telegram_token: str
     anthropic_api_key: str
@@ -67,8 +79,10 @@ class Config:
     plex: PlexConfig = field(default_factory=PlexConfig)
     sonarr: SonarrConfig = field(default_factory=SonarrConfig)
     radarr: RadarrConfig = field(default_factory=RadarrConfig)
+    prowlarr: ProwlarrConfig = field(default_factory=ProwlarrConfig)
     qbittorrent: QBittorrentConfig = field(default_factory=QBittorrentConfig)
     quality: QualityConfig = field(default_factory=QualityConfig)
+    webhook: WebhookConfig = field(default_factory=WebhookConfig)
 
 
 def load_config() -> Config:
@@ -84,6 +98,8 @@ def load_config() -> Config:
         plex=PlexConfig(**data.get("plex", {})),
         sonarr=SonarrConfig(**data.get("sonarr", {})),
         radarr=RadarrConfig(**data.get("radarr", {})),
+        prowlarr=ProwlarrConfig(**data.get("prowlarr", {})),
         qbittorrent=QBittorrentConfig(**data.get("qbittorrent", {})),
         quality=QualityConfig(**data.get("quality", {})),
+        webhook=WebhookConfig(**data.get("webhook", {})),
     )

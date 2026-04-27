@@ -13,6 +13,7 @@ Rules:
 - Specific episode references ("S02E05", "season 2 episode 5") → scope = specific_episode
 - "the whole season" or "season 3" alone → scope = full_season
 - A film → scope = movie
+- Extract year when mentioned (e.g. "The Batman 2022" → year = 2022).
 - Extract any size constraint ("not too big", "under 2GB") → max_size_gb
 - Extract any quality preference ("HD", "4K", "1080p") → min_quality
 - If the title is ambiguous (could be show or film, or unclear) → confidence < 0.7, set clarification_needed
@@ -30,6 +31,10 @@ _INTENT_TOOL: anthropic.types.ToolParam = {
                 "enum": ["tv", "movie", "unknown"],
             },
             "title": {"type": "string"},
+            "year": {
+                "type": "integer",
+                "description": "Release year if mentioned in the request",
+            },
             "scope": {
                 "type": "string",
                 "enum": ["latest_episode", "specific_episode", "full_season", "movie"],
@@ -60,6 +65,7 @@ class ParsedIntent:
     kind: str
     title: str
     scope: str
+    year: int | None
     season: int | None
     episode: int | None
     max_size_gb: float | None
@@ -70,17 +76,24 @@ class ParsedIntent:
     def is_confident(self) -> bool:
         return self.confidence >= 0.7
 
+    def lookup_term(self) -> str:
+        """Build a search term that includes year when available."""
+        if self.year:
+            return f"{self.title} {self.year}"
+        return self.title
+
     def human_description(self) -> str:
+        year_str = f" ({self.year})" if self.year else ""
         if self.kind == "tv":
             if self.scope == "latest_episode":
-                return f"the latest episode of {self.title}"
+                return f"the latest episode of {self.title}{year_str}"
             if self.scope == "specific_episode" and self.season and self.episode:
-                return f"{self.title} S{self.season:02d}E{self.episode:02d}"
+                return f"{self.title}{year_str} S{self.season:02d}E{self.episode:02d}"
             if self.scope == "full_season" and self.season:
-                return f"{self.title} Season {self.season}"
+                return f"{self.title}{year_str} Season {self.season}"
         if self.kind == "movie":
-            return f"the movie {self.title}"
-        return self.title
+            return f"the movie {self.title}{year_str}"
+        return f"{self.title}{year_str}"
 
 
 async def parse_intent(client: anthropic.AsyncAnthropic, text: str) -> ParsedIntent:
@@ -106,6 +119,7 @@ async def parse_intent(client: anthropic.AsyncAnthropic, text: str) -> ParsedInt
         kind=inp["kind"],
         title=inp["title"],
         scope=inp["scope"],
+        year=inp.get("year"),
         season=inp.get("season"),
         episode=inp.get("episode"),
         max_size_gb=inp.get("max_size_gb"),

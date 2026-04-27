@@ -1,8 +1,7 @@
 # Telegram user IDs allowed to use the bot.
 # Get yours: message @userinfobot on Telegram.
 allowed_chat_ids:
-  - 123456789
-  - 987654321
+  - 8483022431
 
 paths:
   incomplete: "/Volumes/Mac Backup/Torrents/incomplete"
@@ -13,20 +12,27 @@ paths:
 plex:
   url: "http://localhost:32400"
   token: ""           # Settings > General > Troubleshooting > Show > X-Plex-Token
-  tv_library_id: "1"  # find via: curl http://localhost:32400/library/sections?X-Plex-Token=TOKEN
+  tv_library_id: "1"
   movies_library_id: "2"
 
 sonarr:
   url: "http://localhost:8989"
-  api_key: ""   # Sonarr > Settings > General > API Key
-  quality_profile_id: 1
+  api_key: ""          # Sonarr > Settings > General > API Key
+  quality_profile_id: 4   # HD-1080p
   root_folder: "/Volumes/Mac Backup/Shared Videos/TV"
 
 radarr:
   url: "http://localhost:7878"
-  api_key: ""   # Radarr > Settings > General > API Key
-  quality_profile_id: 1
+  api_key: ""          # Radarr > Settings > General > API Key
+  quality_profile_id: 4   # HD-1080p
   root_folder: "/Volumes/Mac Backup/Shared Videos/Movies"
+
+# Prowlarr manages all indexers (YTS, TPB, LimeTorrents, Nyaa, etc.).
+# The bot checks indexer health before searches and warns if any are blocked.
+# Prowlarr must be connected to Sonarr and Radarr via Settings > Apps.
+prowlarr:
+  url: "http://localhost:9696"
+  api_key: ""          # Prowlarr > Settings > General > API Key
 
 qbittorrent:
   url: "http://localhost:8080"
@@ -37,3 +43,13 @@ quality:
   default_max_size_gb: 4.0
   preferred_quality: "1080p"
   min_seeders: 5
+
+# Webhook server — receives events from Sonarr and Radarr and forwards them
+# to Telegram. Configure Sonarr and Radarr to POST to:
+#   Sonarr: http://<this-host>:8765/webhooks/sonarr
+#   Radarr: http://<this-host>:8765/webhooks/radarr
+# In Sonarr/Radarr: Settings > Connect > + > Webhook
+# Enable: Grab, Download, Import, ImportFailed, DownloadFailed, Health
+webhook:
+  host: "0.0.0.0"
+  port: 8765
